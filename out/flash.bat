@@ -1,0 +1,1 @@
+D:\\MounRiver\\MounRiver_Studio\\toolchain\\OpenOCD\\bin\\openocd.exe -f "D:\\MounRiver\\MounRiver_Studio\\toolchain\\OpenOCD\\bin\\wch-riscv.cfg" -c "init" -c "reset halt;wait_halt;flash write_image erase app.bin 0x00000000" -c "reset" -c "shutdown"
