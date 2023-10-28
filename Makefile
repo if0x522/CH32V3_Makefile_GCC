@@ -2,6 +2,33 @@
 # Makefile
 ##########
 
+
+# 配置是否使用MounRiver Studio的工具链
+MRS_TOOL = 1
+
+# 配置使用MounRiver Studio的工具链版本
+MRS_TOOL_VERSION = 12
+
+
+ifneq ($(MRS_TOOL),1)
+PREFIX = riscv-none-elf-
+
+# mcu
+MCU = -march=rv32imafc \
+		-mabi=ilp32f 
+
+else
+ifeq ($(MRS_TOOL_VERSION),8)
+PREFIX = D:\\MounRiver\\MounRiver_Studio\\toolchain\\RISC-V Embedded GCC\\bin\\riscv-none-embed-
+else
+PREFIX = D:\\MounRiver\\MounRiver_Studio\\toolchain\\RISC-V Embedded GCC12\\bin\\riscv-none-elf-
+endif
+# mcu
+MCU = -march=rv32imacxw \
+		-mabi=ilp32
+
+endif
+
 # 目标
 TARGET = app
 
@@ -13,12 +40,12 @@ OPT = -Og
 DEBUG = 1
 
 # 编译器
-PREFIX = riscv-none-elf-
-CC = $(PREFIX)gcc
-AS = $(PREFIX)gcc
-LD = $(PREFIX)gcc
-OBJCOPY = $(PREFIX)objcopy
-SIZE = $(PREFIX)size
+# 
+CC = "$(PREFIX)gcc"
+AS = "$(PREFIX)gcc"
+LD = "$(PREFIX)gcc"
+OBJCOPY = "$(PREFIX)objcopy"
+SIZE = "$(PREFIX)size"
 
 HEX = $(OBJCOPY) -O ihex
 BIN = $(OBJCOPY) -O binary -S
@@ -26,11 +53,11 @@ BIN = $(OBJCOPY) -O binary -S
 C_DEFS = -DCH32V307
 
 # C includes
-C_INCLUDES = -I SRC/Core/include \
-				-I SRC/Peripheral/inc \
-				-I SRC\FreeRTOS\include \
-				-I SRC\FreeRTOS\portable\GCC\RISC-V \
-				-I User\include 
+C_INCLUDES = -I "SRC/Core/include" \
+				-I "SRC/Peripheral/inc" \
+				-I "SRC\FreeRTOS\include" \
+				-I "SRC\FreeRTOS\portable\GCC\RISC-V" \
+				-I "User\include" 
 
 AS_DEFS = $(C_DEFS)
 
@@ -42,9 +69,6 @@ LDSCRIPT = SRC\Link.ld
 
 # 编译参数
 ##################
-# mcu
-MCU = -march=rv32imafc \
-		-mabi=ilp32f 
 
 # flags
 FLAGS = $(MCU) \
@@ -73,6 +97,7 @@ ASFLAGS = $(FLAGS) \
 
 # Ldflags
 LDFLAGS = $(MCU) \
+			$(FLAGS) \
 			-nostartfiles \
 			-Xlinker --gc-sections \
 			-T"$(LDSCRIPT)" \
@@ -101,15 +126,16 @@ $(BUILD_DIR):
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJS) | $(BUILD_DIR)
 	@$(LD) $(OBJS) $(LDFLAGS) -o $@
-	$(SIZE) $@
+	$(info "Build success, file size:")
+	@$(SIZE) $@
 
 $(BUILD_DIR)/$(TARGET).bin: $(BUILD_DIR)/$(TARGET).elf
 	@$(BIN) $< $@
-	cp $@ out/$(TARGET).bin
+	@cp $@ out/$(TARGET).bin
 
 $(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
 	@$(HEX) $< $@
-	cp $@ out/$(TARGET).hex
+	@cp $@ out/$(TARGET).hex
 
 clean:
 	@rm -fR $(BUILD_DIR)
